@@ -1,0 +1,29 @@
+# Environment secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Local database
+*.db
+*.sqlite
+*.sqlite3
+
+# Generated media
+generated/*
+uploads/*
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>InstaPilot AI — Content Studio</title>
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="brand-mark">✦</span> InstaPilot <em>AI</em></div>
+  <div class="top-actions">
+    <span id="connectionPill" class="pill muted">Checking Instagram…</span>
+    {% if account %}<span class="account-pill">@{{ account["username"] }}</span>{% else %}<a class="connect" href="/auth/meta">Connect Instagram</a>{% endif %}
+  </div>
+</header>
+
+<main>
+<section class="hero">
+  <div>
+    <div class="eyebrow">AI CONTENT STUDIO</div>
+    <h1>Turn one idea into a<br><span>beautiful Instagram post.</span></h1>
+    <p>Generate strategy, copy and visuals with AI — review the real-looking post, approve it, then publish.</p>
+  </div>
+  <div class="hero-status">
+    <div><span class="dot ai-dot"></span><b id="aiStatus">OpenAI</b><small id="aiDetail">Checking…</small></div>
+    <div><span class="dot ig-dot"></span><b id="metaStatus">Instagram</b><small>Publishing gate enabled</small></div>
+  </div>
+</section>
+
+<section class="studio-grid">
+  <div class="left-column">
+    <div class="card strategy-card">
+      <div class="section-head"><div><span class="step">01</span><div><h2>Strategy</h2><p>Tell the AI what you want to publish.</p></div></div><button class="ghost" onclick="generateIdeas()">✨ Find ideas</button></div>
+      <div class="form-grid">
+        <div><label>Category</label><select id="niche"><option>fitness</option><option>business</option><option>restaurant</option><option>fashion</option><option>creator</option><option>real estate</option></select></div>
+        <div><label>Content type</label><select id="contentType"><option>Carousel</option><option>Single Image</option><option>Reel</option></select></div>
+        <div><label>Goal</label><select id="goal"><option>Grow followers</option><option>Promote a product</option><option>Generate leads</option><option>Educate audience</option><option>Build personal brand</option></select></div>
+        <div><label>Tone</label><select id="tone"><option>Professional and engaging</option><option>Bold and energetic</option><option>Friendly and simple</option><option>Luxury and premium</option><option>Funny and relatable</option></select></div>
+      </div>
+      <label>Audience</label><input id="audience" placeholder="e.g. Indian gym beginners">
+      <div class="ideas" id="ideaList"></div>
+    </div>
+
+    <div class="card content-card">
+      <div class="section-head"><div><span class="step">02</span><div><h2>AI Content Studio</h2><p>Everything stays editable before publishing.</p></div></div><button class="primary" onclick="generateContent()">Generate content</button></div>
+      <label>Selected idea</label><input id="idea" placeholder="Pick an idea above or type your own">
+      <div class="content-fields">
+        <div><label>Hook</label><textarea id="hook" rows="2" placeholder="Your opening hook"></textarea></div>
+        <div><label>Caption</label><textarea id="caption" rows="8" placeholder="Your Instagram caption"></textarea></div>
+        <div class="two"><div><label>CTA</label><textarea id="cta" rows="2"></textarea></div><div><label>Hashtags</label><textarea id="hashtags" rows="2"></textarea></div></div>
+      </div>
+    </div>
+
+    <div class="card visual-card">
+      <div class="section-head"><div><span class="step">03</span><div><h2>AI Visual</h2><p>Generate the actual image that appears in your Instagram post.</p></div></div><button class="primary" onclick="generateVisual()">Generate image</button></div>
+      <div class="visual-row">
+        <div class="visual-info"><div class="ai-badge">AI IMAGE</div><h3 id="visualTitle">Your visual is ready to be generated.</h3><p id="visualDirection">Generate content first, then create a polished square visual matched to the topic and tone.</p><button class="ghost" onclick="regenerateVisual()">↻ Regenerate</button></div>
+        <div class="mini-image"><img id="generatedImage" alt="Generated Instagram visual" hidden><div id="imagePlaceholder"><span>✦</span><b>AI visual</b><small>1024 × 1024</small></div></div>
+      </div>
+    </div>
+
+    <div class="card approval-card">
+      <div class="section-head"><div><span class="step">04</span><div><h2>Approval & publishing</h2><p>Nothing is published until you explicitly approve it.</p></div></div></div>
+      <div class="approval-row"><div class="approval-state"><span id="approvalIcon">○</span><div><b id="approvalText">Draft not approved</b><small id="approvalSub">Review the preview on the right.</small></div></div><div><button class="approve" onclick="approveDraft()">✓ Approve draft</button><button id="publishBtn" class="publish" disabled onclick="publishToInstagram()">Publish to Instagram ↗</button></div></div>
+      <div class="publish-url">
+        <label>Instagram media <span>Upload once — public URL is created automatically</span></label>
+        <div class="media-upload-row">
+          <input id="mediaFile" type="file" accept="image/jpeg,image/png,image/webp">
+          <button class="ghost" type="button" onclick="uploadMedia()">Upload image</button>
+        </div>
+        <div id="mediaStatus" class="media-status">No image uploaded yet.</div>
+        <input id="mediaUrl" type="hidden">
+        <small>For local development, keep ngrok running and set <code>PUBLIC_BASE_URL</code> in <code>.env</code>. You no longer need to paste a media URL manually.</small>
+      </div>
+      <div id="message"></div>
+    </div>
+  </div>
+
+  <aside class="preview-panel">
+    <div class="preview-header"><div><span>LIVE PREVIEW</span><h2>Instagram</h2></div><div class="preview-actions"><button class="icon-btn" onclick="togglePreviewMode('post')">Post</button><button class="icon-btn" onclick="togglePreviewMode('reel')">Reel</button></div></div>
+    <div class="phone-wrap">
+      <div class="phone" id="phone">
+        <div class="phone-top"><span class="camera"></span><span></span><span class="speaker"></span></div>
+        <div class="ig-head"><div class="avatar">✦</div><div><b id="previewUsername">your_brand</b><small id="previewLocation">Original audio</small></div><b class="dots">•••</b></div>
+        <div class="post-media" id="postMedia"><img id="previewImage" alt="Instagram preview"><div id="previewFallback" class="preview-fallback"><span>✦</span><b id="previewHook">Your AI visual</b><small>Generate an image to preview it here</small></div><div class="carousel-count" id="carouselCount">1 / 1</div></div>
+        <div class="ig-actions"><span>♡</span><span>◯</span><span>➤</span><span class="save">⌑</span></div>
+        <div class="ig-copy"><b>your_brand</b> <span id="previewCaption">Your caption will appear here.</span></div>
+        <div class="ig-tags" id="previewTags">#yourbrand #content</div>
+        <div class="ig-time">JUST NOW</div>
+        <div class="reel-overlay" id="reelOverlay"><div class="reel-play">▶</div><div class="reel-side">♡<small>1.2K</small>◯<small>83</small>➤</div><div class="reel-copy"><b>your_brand</b><span id="reelPreviewText">Your Reel script will appear here.</span></div></div>
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+    <div class="preview-footer"><span>Preview updates as you edit</span><span class="live-dot">● LIVE</span></div>
+  </aside>
+</section>
+</main>
+<script src="/static/app.js"></script>
+</body>
+</html>
